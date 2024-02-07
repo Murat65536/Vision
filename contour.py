@@ -4,8 +4,6 @@ import numpy as np
 def nothing(n):
     pass
 
-# Contours w/ greatest number of points
-# TODO max by area
 def biggestContourI(contours):
     maxVal = 0
     maxI = None
@@ -18,11 +16,11 @@ def biggestContourI(contours):
             
 
 iLowH = 0
-iHighH = 5
+iHighH = 10
 iLowS = 116
-iHighS = 208
-iLowV = 163
-iHighV = 225
+iHighS = 226
+iLowV = 182
+iHighV = 255
 
 cv2.namedWindow('Control')
 cv2.createTrackbar("LowH", "Control", iLowH, 255, nothing)
@@ -46,17 +44,26 @@ while True:
 
     lower = np.array([lh, ls, lv], dtype = "uint8")
     higher = np.array([hh, hs, hv], dtype = "uint8")
-    
+
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     h, w = img.shape[:2]
     flt = cv2.inRange(hsv, lower, higher)
-    
-    contours0, hierarchy = cv2.findContours(flt, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Only draw the biggest one
-    bc = biggestContourI(contours0)
-    cv2.drawContours(img, contours0, bc, (0,255,0), 3)
-    
+    contours, hierarchy = cv2.findContours(flt, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+
+    bc = biggestContourI(contours)
+    cv2.drawContours(img, contours, bc, (0,255,0), 3)
+
+    if (len(contours) > 0):
+        x1,y1,x2,y2 = cv2.boundingRect(contours[bc])
+        cv2.rectangle(img, (x1, y1), (x1+x2, y1+y2), (0, 255, 0), 2)
+        imageCenterX = round(x1+x2/2)
+        imageCenterY = round(y1+y2/2)
+        cv2.circle(img, (imageCenterX, imageCenterY), 5, (0, 255, 0), -1)
+
+    cv2.circle(img, (round(cam.get(cv2.CAP_PROP_FRAME_WIDTH)/2), round(cam.get(cv2.CAP_PROP_FRAME_HEIGHT)/2)), 5, (255, 0, 0), -1)
+
     cv2.imshow('cam', img)
     cv2.imshow('hsv', hsv)
     cv2.imshow('flt', flt)
